@@ -1,0 +1,169 @@
+🏪 ShopVerse — Event-Driven E-Commerce Backend
+🔹 What It Is
+
+ShopVerse is a microservices-based, event-driven e-commerce backend system.
+Users can register/login, browse/search products, place orders, process payments asynchronously, and receive notifications — all handled by independent services communicating via Apache Kafka.
+
+Built like a real production system — includes caching, full-text search, rate limiting, circuit breakers, tests, Docker, CI/CD, and AWS deployment.
+
+💡 Why It Matters (Significance)
+TL;DR
+
+ShopVerse mirrors how modern product companies build scalable, resilient, observable backend systems.
+
+Real-World Value
+
+✅ Demonstrates production-grade architecture — microservices, async messaging, observability, CI/CD.
+
+✅ Covers key backend pillars: Java internals, Spring ecosystem, databases (SQL + NoSQL), Kafka, Redis, ElasticSearch, AWS.
+
+✅ Shows end-to-end request flow and async system design (higher throughput, decoupled reliability).
+
+✅ Strong portfolio project — great interview talking point for product or distributed systems roles.
+
+🧩 Core Components & Technologies
+Component	Technology	Purpose / Why Used
+Language & Framework	Java 17 + Spring Boot 3	Dependency Injection, Web APIs, Data Access
+User Data	PostgreSQL	ACID-compliant transactional store
+Product Catalog	MongoDB	Flexible schema, fast writes
+Search	ElasticSearch	Full-text, fuzzy, relevance-based search
+Caching / Rate Limiting	Redis	Speed + rate control for gateway & hot reads
+Event Bus	Apache Kafka	Decoupled async communication between services
+Gateway	Spring Cloud Gateway	Routing, JWT validation, rate limiting
+Auth	Spring Security + JWT	Authentication & authorization
+Resilience	Resilience4J	Circuit breaker, retry, bulkhead
+Testing	JUnit + Mockito	Unit & integration tests
+Containers	Docker + Compose	Reproducible local environment
+CI/CD	GitHub Actions	Automated build/test/deploy
+Deployment	AWS EC2 (+ RDS/S3)	Cloud hosting
+Monitoring	Prometheus + Grafana + Actuator	Metrics, dashboards, observability
+⚙️ Detailed End-to-End Flow
+1️⃣ API Gateway (Spring Cloud Gateway + Redis RateLimiter)
+
+Routes requests (/users, /products, /orders, etc.)
+
+Validates JWTs, applies rate limits.
+
+Improves security & protects backend from overload.
+
+2️⃣ User Service (PostgreSQL)
+
+Endpoints: /users/register, /users/login, /users/{id}
+
+Handles user registration, login, and JWT issuance.
+
+Stores user credentials & roles in relational DB.
+
+3️⃣ Product Service (MongoDB + ElasticSearch + Redis)
+
+Endpoints: /products, /products/{id}, /products/search?q=...
+
+Stores products in MongoDB, indexes them in ElasticSearch.
+
+Caches frequent reads in Redis for fast access.
+
+4️⃣ Order Service (PostgreSQL + Kafka Producer)
+
+Endpoint: POST /orders
+
+Validates user & product IDs.
+
+Saves order with status PENDING.
+
+Publishes order-created event to Kafka → triggers async processing.
+
+5️⃣ Payment Service (Kafka Consumer)
+
+Subscribes to order-created topic.
+
+Simulates payment (success/failure).
+
+Updates order status (SUCCESS / FAILED) via REST or payment-status Kafka event.
+
+6️⃣ Notification Service (Kafka Consumer)
+
+Listens to order-created & payment-status topics.
+
+Sends appropriate notifications (mocked / logged).
+
+Fully decoupled from order/payment flow.
+
+7️⃣ Caching & Rate Limiting (Redis)
+
+Cache: Hot product reads → reduced DB load.
+
+Rate limit: Controls user/IP request frequency at gateway level.
+
+8️⃣ Security (Spring Security + JWT)
+
+Centralized authentication (JWT generation at login).
+
+Distributed authorization (role-based via annotations).
+
+Tokens validated at gateway → forwarded to microservices.
+
+9️⃣ Resilience (Resilience4J)
+
+Circuit breakers protect from downstream failures.
+
+Example: If Payment Service fails, Order Service falls back safely.
+
+Ensures reliability & graceful degradation.
+
+🔟 Deployment & DevOps
+Docker + Docker Compose
+
+Each service containerized.
+
+docker-compose up -d → runs complete system locally.
+
+AWS EC2 Deployment
+
+Clone repo, run via Docker Compose on cloud.
+
+Public IP accessible — real-world hosting experience.
+
+GitHub Actions CI/CD
+
+Auto build + test on every push.
+
+Optional SSH deploy to AWS.
+
+1️⃣1️⃣ Monitoring & Observability
+
+Spring Actuator exposes metrics.
+
+Prometheus scrapes data.
+
+Grafana visualizes dashboards (CPU, latency, requests, etc.).
+
+Enables proactive system monitoring.
+
+🔁 System Flow Summary
+Client
+  ↓
+Gateway (JWT + RateLimit)
+  ↓
+User Service → PostgreSQL
+  ↓
+Product Service → MongoDB → ElasticSearch
+  ↓
+Order Service → PostgreSQL → Kafka (order-created)
+  ↓
+Payment Service (Kafka consumer) → Kafka (payment-status)
+  ↓
+Notification Service (Kafka consumer)
+  ↓
+Redis (shared cache)
+  ↓
+Docker → GitHub Actions → AWS EC2
+
+🌟 Significance Summary
+Goal	Technology	Why It Matters
+Scalability	Microservices + Kafka	Independent scaling & async processing
+Speed	Redis caching	Sub-ms reads, reduced DB load
+Reliability	Resilience4J + Kafka	Graceful degradation & decoupling
+Security	JWT + Gateway	Real auth/authz flow
+Observability	Prometheus + Grafana	Real-time metrics & dashboards
+Portability	Docker + Compose	Consistent local + cloud setup
+Deployment	AWS + GitHub Actions	CI/CD with real cloud deployment
